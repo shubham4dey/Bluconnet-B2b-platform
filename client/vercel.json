@@ -2,7 +2,7 @@
   "version": 3,
   "builds": [
     {
-      "src": "client/package.json",
+      "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
         "buildCommand": "npm ci && npm run build",
@@ -18,7 +18,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/client/dist/index.html"
+      "dest": "/index.html"
     }
   ],
   "cleanUrls": true
