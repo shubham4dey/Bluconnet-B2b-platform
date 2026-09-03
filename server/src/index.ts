@@ -54,17 +54,17 @@ app.get('/api/health', (req, res) => {
 });
 
 // Serve frontend in production
-if (process.env.NODE_ENV === 'production') {
-  const clientDistPath = path.join(__dirname, '../../client/dist');
-  app.use(express.static(clientDistPath));
+// if (process.env.NODE_ENV === 'production') {
+//   const clientDistPath = path.join(__dirname, '../../client/dist');
+//   app.use(express.static(clientDistPath));
 
-  // Serve index.html for all non-API routes (SPA support)
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
-      res.sendFile(path.join(clientDistPath, 'index.html'));
-    }
-  });
-}
+//   // Serve index.html for all non-API routes (SPA support)
+//   app.get('*', (req, res) => {
+//     if (!req.path.startsWith('/api')) {
+//       res.sendFile(path.join(clientDistPath, 'index.html'));
+//     }
+//   });
+// }
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
