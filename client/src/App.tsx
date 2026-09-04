@@ -2,12 +2,14 @@
 import { BrowserRouter, Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from './components/Toast';
-import { Building2, Users, LayoutDashboard, ShieldCheck, LogOut, Menu, TrendingUp } from 'lucide-react';
+import { Building2, Users, LayoutDashboard, ShieldCheck, LogOut, Menu } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import Companies from './pages/Companies';
 import Employees from './pages/Employees';
 import Login from './pages/Login';
 import { getMe } from './lib/api';
+
+const LOGO_URL = 'https://res.cloudinary.com/wyixfdon/image/upload/v1788505553/creative-logo-360_6-removebg-preview_rjmq61.png';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -81,12 +83,14 @@ function Layout({ children }: { children: React.ReactNode }) {
     <div className="flex h-full flex-col">
       {/* Brand */}
       <div className="flex h-16 items-center gap-3 border-b border-white/10 px-5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 text-white shadow-lg shadow-brand-900/40">
-          <TrendingUp className="h-5 w-5" />
-        </div>
+        <img
+          src={LOGO_URL}
+          alt="Bluconnetmedia B2B Lead Platform"
+          className="h-9 w-9 rounded-xl object-contain"
+        />
         <div>
-          <p className="text-sm font-bold leading-tight text-white">B2B Lead</p>
-          <p className="text-[11px] leading-tight text-slate-400">Platform</p>
+          <p className="text-sm font-bold leading-tight text-white">Bluconnetmedia</p>
+          <p className="text-[11px] leading-tight text-slate-400">B2B Lead Platform</p>
         </div>
       </div>
 
@@ -162,7 +166,7 @@ function Layout({ children }: { children: React.ReactNode }) {
             <Menu className="h-5 w-5" />
           </button>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-slate-800">B2B Lead Management</p>
+            <p className="text-sm font-semibold text-slate-800">Bluconnetmedia B2B Lead Platform</p>
             <p className="hidden text-xs text-slate-400 sm:block">Company data, leads &amp; team workflows</p>
           </div>
           <button

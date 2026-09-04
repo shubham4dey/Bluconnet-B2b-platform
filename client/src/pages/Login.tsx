@@ -1,6 +1,8 @@
-   import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { login } from '../lib/api';
-import { Eye, EyeOff, Mail, Lock, TrendingUp, Building2, BarChart3, ShieldCheck, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Building2, BarChart3, ShieldCheck, Loader2 } from 'lucide-react';
+
+const LOGO_URL = 'https://res.cloudinary.com/wyixfdon/image/upload/v1788505553/creative-logo-360_6-removebg-preview_rjmq61.png';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -35,12 +37,14 @@ export default function Login() {
 
         {/* Logo */}
         <div className="relative flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-violet-600 shadow-lg shadow-brand-500/40">
-            <TrendingUp className="h-6 w-6 text-white" />
-          </div>
+          <img
+            src={LOGO_URL}
+            alt="Bluconnetmedia B2B Lead Platform"
+            className="h-11 w-11 rounded-2xl object-contain"
+          />
           <div>
-            <p className="text-lg font-bold leading-tight text-white">B2B Lead</p>
-            <p className="text-sm leading-tight text-slate-400">Platform</p>
+            <p className="text-lg font-bold leading-tight text-white">Bluconnetmedia</p>
+            <p className="text-sm leading-tight text-slate-400">B2B Lead Platform</p>
           </div>
         </div>
 
@@ -60,17 +64,20 @@ export default function Login() {
           </div>
         </div>
 
-        <p className="relative text-xs text-slate-500">© {new Date().getFullYear()} B2B Lead Platform. All rights reserved.</p>
+        <p className="relative text-xs text-slate-500">© {new Date().getFullYear()} Bluconnetmedia B2B Lead Platform. All rights reserved.</p>
       </div>
-{/* Form panel */}
+
+      {/* Form panel */}
       <div className="flex flex-1 items-center justify-center bg-slate-50 px-4 py-12 sm:px-8">
         <div className="w-full max-w-md animate-slide-up">
           {/* Mobile logo */}
           <div className="mb-8 flex flex-col items-center lg:hidden">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-violet-600 shadow-lg shadow-brand-500/30">
-              <TrendingUp className="h-7 w-7 text-white" />
-            </div>
-            <h1 className="mt-4 text-2xl font-bold text-slate-900">B2B Lead Platform</h1>
+            <img
+              src={LOGO_URL}
+              alt="Bluconnetmedia B2B Lead Platform"
+              className="h-14 w-14 rounded-2xl object-contain"
+            />
+            <h1 className="mt-4 text-2xl font-bold text-slate-900">Bluconnetmedia B2B Lead Platform</h1>
           </div>
 
           <div className="rounded-2xl border border-slate-200/60 bg-white p-8 shadow-card sm:p-10">
