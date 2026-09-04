@@ -61,7 +61,6 @@ export default function EmployeeModal({ employee, onClose, onSubmit, loading, ti
           <Select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
             <option value="EMPLOYEE">Employee</option>
             <option value="ADMIN">Admin</option>
-            <option value="DATA_MANAGER">Data Manager</option>
           </Select>
         </Field>
 

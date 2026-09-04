@@ -6,7 +6,7 @@ import { AuthRequest } from '../middleware/auth';
 export const getEmployees = async (req: AuthRequest, res: Response) => {
   try {
     const employees = await prisma.user.findMany({
-      where: { role: { in: ['EMPLOYEE', 'ADMIN', 'DATA_MANAGER'] } },
+      where: { role: { in: ['EMPLOYEE', 'ADMIN'] } },
       select: { id: true, name: true, email: true, role: true, status: true, lastLogin: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
     });

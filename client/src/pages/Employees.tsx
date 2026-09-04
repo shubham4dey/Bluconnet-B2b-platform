@@ -48,7 +48,7 @@ export default function Employees() {
   });
 
   const roleColor = (role: string) =>
-    role === 'SUPER_ADMIN' ? 'purple' : role === 'ADMIN' ? 'indigo' : role === 'DATA_MANAGER' ? 'blue' : 'gray';
+    role === 'SUPER_ADMIN' ? 'purple' : role === 'ADMIN' ? 'indigo' : 'gray';
 
   return (
     <div className="animate-fade-in space-y-6">

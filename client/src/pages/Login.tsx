@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { login } from '../lib/api';
 import { Eye, EyeOff, Mail, Lock, Building2, BarChart3, ShieldCheck, Loader2 } from 'lucide-react';
 
-const LOGO_URL = 'https://res.cloudinary.com/wyixfdon/image/upload/v1788505553/creative-logo-360_6-removebg-preview_rjmq61.png';
+const LOGO_URL = 'https://res.cloudinary.com/wyixfdon/image/upload/v1788522474/logo.e37f4b4e88609db63b46_ln3j18.png';
 
 export default function Login() {
   const [email, setEmail] = useState('');

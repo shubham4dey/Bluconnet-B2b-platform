@@ -10,7 +10,6 @@ datasource db {
 enum Role {
   SUPER_ADMIN
   ADMIN
-  DATA_MANAGER
   EMPLOYEE
 }
 

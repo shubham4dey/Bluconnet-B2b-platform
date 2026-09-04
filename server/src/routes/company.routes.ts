@@ -14,12 +14,12 @@ const upload = multer({
 
 router.get('/', authenticate, getCompanies);
 router.get('/account-managers', authenticate, getAccountManagers);
-router.get('/export', authenticate, exportCompanies);
-router.post('/', authenticate, authorize('SUPER_ADMIN', 'ADMIN', 'DATA_MANAGER', 'EMPLOYEE'), createCompany);
-router.put('/:id', authenticate, authorize('SUPER_ADMIN', 'ADMIN', 'DATA_MANAGER'), updateCompany);
-router.patch('/:id/status', authenticate, authorize('SUPER_ADMIN', 'ADMIN', 'DATA_MANAGER'), updateCompanyStatus);
-router.delete('/:id', authenticate, authorize('SUPER_ADMIN', 'ADMIN', 'DATA_MANAGER'), deleteCompany);
-router.post('/import', authenticate, authorize('SUPER_ADMIN', 'ADMIN', 'DATA_MANAGER'), upload.single('file'), importCompanies);
+router.get('/export', authenticate, authorize('SUPER_ADMIN', 'ADMIN'), exportCompanies);
+router.post('/', authenticate, authorize('SUPER_ADMIN', 'ADMIN', 'EMPLOYEE'), createCompany);
+router.put('/:id', authenticate, authorize('SUPER_ADMIN', 'ADMIN'), updateCompany);
+router.patch('/:id/status', authenticate, authorize('SUPER_ADMIN', 'ADMIN'), updateCompanyStatus);
+router.delete('/:id', authenticate, authorize('SUPER_ADMIN', 'ADMIN'), deleteCompany);
+router.post('/import', authenticate, authorize('SUPER_ADMIN', 'ADMIN', 'EMPLOYEE'), upload.single('file'), importCompanies);
 router.get('/import/logs', authenticate, getImportLogs);
 
 export default router;

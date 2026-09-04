@@ -34,7 +34,11 @@ export default function SuperAdmin() {
     }
   }, []);
 
-  const canManage = ['SUPER_ADMIN', 'ADMIN', 'DATA_MANAGER'].includes(role);
+  const canManage = ['SUPER_ADMIN', 'ADMIN'].includes(role);
+  // Export is Admin-only (SUPER_ADMIN / ADMIN) per role-based access control.
+  const isAdmin = ['SUPER_ADMIN', 'ADMIN'].includes(role);
+  // Employees are allowed to add companies and import CSVs, but never export.
+  const canAddOrImport = canManage || role === 'EMPLOYEE';
 
   const { data, isLoading } = useQuery({
     queryKey: ['companies', page, search, status, industry, country, companyType, affiliateManager],
@@ -108,15 +112,17 @@ export default function SuperAdmin() {
         icon={<Building2 className="h-5 w-5" />}
         actions={
           <>
-            <Button variant="secondary" onClick={handleExport} loading={exporting} icon={<FileDown className="h-4 w-4" />}>
-              Export CSV
-            </Button>
-            {canManage && (
+            {isAdmin && (
+              <Button variant="secondary" onClick={handleExport} loading={exporting} icon={<FileDown className="h-4 w-4" />}>
+                Export CSV
+              </Button>
+            )}
+            {canAddOrImport && (
               <Button variant="success" onClick={() => setImportOpen(true)} icon={<Upload className="h-4 w-4" />}>
                 Import
               </Button>
             )}
-            {canManage && (
+            {canAddOrImport && (
               <Button onClick={() => setCreateOpen(true)} icon={<Plus className="h-4 w-4" />}>
                 Add Company
               </Button>
