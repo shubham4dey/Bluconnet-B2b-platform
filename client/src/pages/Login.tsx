@@ -3,8 +3,8 @@ import { login } from '../lib/api';
 import { Eye, EyeOff, Mail, Lock, TrendingUp, Building2, BarChart3, ShieldCheck, Loader2 } from 'lucide-react';
 
 export default function Login() {
-  const [email, setEmail] = useState('admin@bluconnetmedia.com');
-  const [password, setPassword] = useState('Admin@1234');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
