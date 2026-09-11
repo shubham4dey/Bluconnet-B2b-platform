@@ -1,0 +1,191 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  EMPLOYEE
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+// Dedicated lifecycle statuses for Company records (distinct from User account status).
+enum CompanyStatus {
+  ACTIVE
+  PENDING
+  PROCESS
+  REJECT
+  INACTIVE
+}
+
+enum LeadQuality {
+  A
+  B
+  C
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  role          Role      @default(EMPLOYEE)
+  status        Status    @default(ACTIVE)
+  lastLogin     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  companiesAdded   Company[] @relation("AddedBy")
+  companiesModified Company[] @relation("ModifiedBy")
+  auditLogs        AuditLog[]
+  imports          ImportLog[]
+  feedbacks        CompanyFeedback[]
+  permission       Permission?
+}
+
+model Permission {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  canRead   Boolean  @default(true)
+  canCreate Boolean  @default(false)
+  canUpdate Boolean  @default(false)
+  canDelete Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Company {
+   id                String       @id @default(uuid())
+   companyName       String
+   website           String?
+   linkedinUrl       String?
+   email             String?
+   salesNumber       String?
+   phone             String?
+   whatsappNumber    String?
+   advertiserId      String?
+   advertiserName    String?
+   contactPersonName String?
+   contactPersonPhone String?
+   telegramTeams     String?
+   whatsappVerified  Boolean      @default(false)
+   employees         Int?
+   followers         Int?
+   companyType       String?
+   industry          String?
+   baseGeo           String?
+   country           String?
+   state             String?
+   city              String?
+   address           String?
+   address1          String?
+   address2          String?
+   zipcode           String?
+   otherInfo         String?
+   services          String?
+   revenue           String?
+   companySize       String?
+   technologiesUsed  String?
+   targetMarket      String?
+   leadQuality       LeadQuality  @default(C)
+   status            CompanyStatus @default(PENDING)
+   statusRaw         String?
+   signupIp          String?
+   externalId        Int?         @unique
+   accountManagerId  Int?
+   accountManagerName String?
+   employeeName      String?
+   // Legacy display timestamps (populated by CSV imports). The API coalesces
+   // them with the authoritative createdAt / updatedAt below so "Record
+   // Created" / "Last Modified" always render a valid date, and a startup
+   // backfill fills NULLs once (never overwriting valid values).
+   recordCreated     DateTime?
+   recordModified    DateTime?
+   complianceGdpr    Boolean      @default(false)
+   complianceCcpa    Boolean      @default(false)
+   optIn             Boolean      @default(false)
+   doNotContact      Boolean      @default(false)
+   source            String       @default("Manual")
+isDeleted        Boolean     @default(false)
+   
+   addedById         String
+   addedBy           User         @relation("AddedBy", fields: [addedById], references: [id])
+   lastModifiedById  String
+   lastModifiedBy    User         @relation("ModifiedBy", fields: [lastModifiedById], references: [id])
+   
+   createdAt         DateTime     @default(now())
+   updatedAt         DateTime     @updatedAt
+
+   auditLogs         AuditLog[]
+   feedbacks         CompanyFeedback[]
+
+   @@index([companyName])
+   @@index([email])
+   @@index([website])
+   @@index([country, city])
+   @@index([industry])
+   @@index([status])
+   @@index([leadQuality])
+   @@index([employeeName])
+   @@index([accountManagerName])
+   @@index([accountManagerId])
+}
+
+model AuditLog {
+   id          String   @id @default(uuid())
+   userId      String
+   user        User     @relation(fields: [userId], references: [id])
+   companyId   String?
+   company     Company? @relation(fields: [companyId], references: [id])
+   action      String
+   fieldName   String?
+   oldValue    String?
+   newValue    String?
+   ipAddress   String?
+   userAgent   String?
+   createdAt   DateTime @default(now())
+
+   @@index([userId])
+   @@index([companyId])
+   @@index([action])
+}
+
+model ImportLog {
+   id          String   @id @default(uuid())
+   fileName    String
+   userId      String
+   user        User     @relation(fields: [userId], references: [id])
+   totalRows   Int
+   imported    Int
+   updated     Int
+   duplicates  Int
+   failed      Int
+   status      String
+   createdAt   DateTime @default(now())
+}
+
+// Internal HR / admin remarks left on company records.
+model CompanyFeedback {
+   id        String   @id @default(uuid())
+   comment   String
+   companyId String
+   company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+   userId    String
+   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+   createdAt DateTime @default(now())
+   updatedAt DateTime @updatedAt
+
+   @@index([companyId])
+   @@index([userId])
+}

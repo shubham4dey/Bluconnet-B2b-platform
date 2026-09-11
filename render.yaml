@@ -1,0 +1,38 @@
+# Render Blueprint for B2B Lead Platform
+# Deploy: https://render.com/docs/blueprint-spec
+# Backend:  https://bluconnet-b2b-platform.onrender.com
+# Frontend: https://bluconnet-b2b-platform.vercel.app  (deployed to Vercel)
+
+services:
+  # Backend API Service
+  - type: web
+    name: b2b-lead-backend
+    runtime: docker
+    dockerfilePath: ./server/Dockerfile
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: DATABASE_URL
+        sync: false
+        # Set this in Render dashboard to your Neon or Render database URL
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        # Allow the Vercel frontend plus localhost origins for local dev
+        value: https://bluconnet-b2b-platform.vercel.app,http://localhost:3000,http://localhost:5173
+
+  # Frontend is deployed to Vercel (see client/vercel.json).
+  # Do not run a separate frontend web service on Render.
+
+databases:
+  # Optional: Create a PostgreSQL database on Render
+  - name: b2b-lead-database
+    plan: starter
+    databaseName: leadplatform
+    user: admin

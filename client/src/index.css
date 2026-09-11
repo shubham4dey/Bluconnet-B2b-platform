@@ -1,0 +1,202 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+  body {
+    @apply bg-slate-50 text-slate-900;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  ::selection {
+    @apply bg-brand-100 text-brand-900;
+  }
+}
+
+@layer components {
+  .input-base {
+    @apply w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none transition-all duration-150 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-brand-700 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-brand-500/20 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-150 hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-500/10 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-rose-700 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-rose-500/20 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-500 transition-all duration-150 hover:bg-slate-100 hover:text-slate-700 focus:outline-none;;
+  }
+
+  .card {
+    @apply rounded-2xl border border-slate-200/60 bg-white shadow-card;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  }
+
+  .skeleton {
+    @apply animate-pulse rounded-lg bg-slate-200/70;
+  }
+
+  /* Custom scrollbar - Enhanced for better visibility and usability */
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-100 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-slate-400 border-2 border-transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-500;
+  }
+  ::-webkit-scrollbar-thumb:active {
+    @apply bg-slate-600;
+  }
+  ::-webkit-scrollbar-corner {
+    @apply bg-slate-100;
+  }
+  
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #94a3b8 #f1f5f9;
+  }
+  
+  /* Table horizontal scroll container - Apple-style premium minimal */
+  .table-scroll-container {
+    overflow-x: auto;
+    overflow-y: hidden;
+    position: relative;
+    scrollbar-gutter: stable;
+  }
+  
+  /* Apple-style minimal scrollbar - ultra-thin with auto-hide */
+  .table-scroll-container::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  .table-scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 0;
+  }
+  
+  .table-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 100px;
+    min-width: 40px;
+    transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  }
+  
+  .table-scroll-container:hover::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.25);
+  }
+  
+  .table-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.4);
+  }
+  
+  .table-scroll-container::-webkit-scrollbar-thumb:active {
+    background: rgba(0, 0, 0, 0.5);
+  }
+  
+  /* Auto-hide when not interacting - smooth fade */
+  .table-scroll-container:not(:hover)::-webkit-scrollbar-thumb {
+    opacity: 0;
+    animation: scrollbarFadeOut 0.4s ease forwards;
+  }
+  
+  .table-scroll-container:hover::-webkit-scrollbar-thumb {
+    opacity: 1;
+    animation: scrollbarFadeIn 0.3s ease forwards;
+  }
+  
+  @keyframes scrollbarFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  @keyframes scrollbarFadeOut {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+  
+  /* Firefox - Apple-style thin scrollbar */
+  .table-scroll-container {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+  }
+  
+  .table-scroll-container:hover {
+    scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+  }
+  
+  /* Premium scroll indicator - subtle gradient edges */
+  .table-scroll-container::before,
+  .table-scroll-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 6px;
+    width: 30px;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .table-scroll-container::before {
+    left: 0;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0.9), transparent);
+  }
+  
+  .table-scroll-container::after {
+    right: 0;
+    background: linear-gradient(to left, rgba(255, 255, 255, 0.9), transparent);
+  }
+  
+  .table-scroll-container.can-scroll-left::before {
+    opacity: 1;
+  }
+  
+  .table-scroll-container.can-scroll-right::after {
+    opacity: 1;
+  }
+  
+  /* Drag scrolling cursor */
+  .table-scroll-container.dragging {
+    cursor: grabbing;
+    user-select: none;
+  }
+  
+  .table-scroll-container.can-drag {
+    cursor: grab;
+  }
+  
+  /* Smooth scroll behavior */
+  .table-scroll-container {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+}
