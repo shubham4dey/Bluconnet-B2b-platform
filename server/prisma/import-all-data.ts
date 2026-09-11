@@ -81,7 +81,6 @@ async function main() {
       baseGeo: String(r['Base GEO'] ?? r['Base Geo'] ?? '').trim() || null,
       address: String(r['Address'] ?? '').trim() || null,
       services: String(r['Services'] ?? '').trim() || null,
-      revenue: String(r['Revenue'] ?? '').trim() || null,
       companySize: String(r['Company Size'] ?? '').trim() || null,
       technologiesUsed: String(r['Technologies Used'] ?? '').trim() || null,
       targetMarket: String(r['Target Market'] ?? '').trim() || null,

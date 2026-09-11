@@ -18,10 +18,10 @@ const LEAD_QUALITIES = ['A', 'B', 'C'] as const;
 // "Unknown argument" validation error.
 const COMPANY_SCALAR_FIELDS = new Set<string>([
   'companyName', 'website', 'linkedinUrl', 'email', 'salesNumber', 'phone',
-  'whatsappNumber', 'advertiserId', 'advertiserName', 'contactPersonName',
+  'whatsappNumber', 'contactPersonName',
   'contactPersonPhone', 'telegramTeams', 'companyType', 'industry', 'baseGeo',
   'country', 'state', 'city', 'address', 'address1', 'address2', 'zipcode',
-  'otherInfo', 'services', 'revenue', 'companySize', 'technologiesUsed',
+  'otherInfo', 'services', 'companySize', 'technologiesUsed',
   'targetMarket', 'leadQuality', 'status', 'statusRaw', 'signupIp', 'externalId',
   'accountManagerId', 'accountManagerName', 'employeeName', 'recordCreated',
   'recordModified', 'whatsappVerified', 'complianceGdpr', 'complianceCcpa',
@@ -88,8 +88,6 @@ async function buildWhere(req: AuthRequest) {
     const term = search as string;
     where.OR = [
       { companyName: { contains: term, mode: 'insensitive' } },
-      { advertiserName: { contains: term, mode: 'insensitive' } },
-      { advertiserId: { contains: term, mode: 'insensitive' } },
       { email: { contains: term, mode: 'insensitive' } },
       { website: { contains: term, mode: 'insensitive' } },
       { phone: { contains: term, mode: 'insensitive' } },
@@ -600,7 +598,7 @@ export const exportCompanies = async (req: AuthRequest, res: Response) => {
       'Account Manager ID', 'Account Manager', 'Date Created', 'Last Modified',
       'Website', 'LinkedIn Link', 'Mail ID', 'Sales Number', 'WhatsApp Number',
       'Employees', 'Followers', 'Type', 'Industry', 'Base GEO',
-      'Address', 'Services', 'Revenue', 'Company Size', 'Technologies Used', 'Target Market',
+      'Address', 'Services', 'Company Size', 'Technologies Used', 'Target Market',
       'Lead Quality', 'Source',
       'Added By', 'Added Date', 'Last Modified By', 'Last Modified Date',
     ];
@@ -637,7 +635,6 @@ export const exportCompanies = async (req: AuthRequest, res: Response) => {
       c.baseGeo,
       c.address,
       c.services,
-      c.revenue,
       c.companySize,
       c.technologiesUsed,
       c.targetMarket,

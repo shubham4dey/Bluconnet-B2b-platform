@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getCompanies, getImportLogs, exportCompaniesCsv, updateCompany, updateCompanyStatus, deleteCompany, deleteCompaniesBulk, getAssignableUsers, getCompanyFeedback, addCompanyFeedback } from '../lib/api';
 import { AlertTriangle, Search, Download, Edit2, Trash2, Eye, Upload, History, Building2, Plus, ChevronLeft, ChevronRight, FileDown, FilterX, Users, Mail, Globe, Linkedin, X, ToggleLeft, ToggleRight, Loader2, MessageSquare, Save } from 'lucide-react';
@@ -13,7 +13,7 @@ const PAGE_SIZE_KEY = 'companies:pageSize';
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100, 250];
 const DEFAULT_PAGE_SIZE = 25;
 
-// '' / junk → null (column stays empty); '1,200' or ' 50 ' → 1200 / 50.
+// '' / junk ? null (column stays empty); '1,200' or ' 50 ' ? 1200 / 50.
 // Mirrors CompanyForm so the Int columns never receive NaN or '' (the API
 // would reject those). Never sends NaN for the employees/followers columns.
 const parseOptionalInt = (v: string): number | null => {
@@ -24,7 +24,7 @@ const parseOptionalInt = (v: string): number | null => {
 
 // Editable fields for the inline edit mode of the Company Details modal
 // (Admin / Super Admin only). Mirrors CompanyForm's field set plus the extra
-// detail-only columns (country, city, state, revenue, companySize,
+// detail-only columns (country, city, state, companySize,
 // technologiesUsed, targetMarket) that the backend accepts.
 const INLINE_EDIT_EMPTY = {
   companyName: '',
@@ -46,13 +46,10 @@ const INLINE_EDIT_EMPTY = {
   telegramTeams: '',
   contactPersonName: '',
   contactPersonPhone: '',
-  advertiserId: '',
-  advertiserName: '',
   accountManagerName: '',
   country: '',
   city: '',
   state: '',
-  revenue: '',
   companySize: '',
   technologiesUsed: '',
   targetMarket: '',
@@ -75,7 +72,7 @@ export default function SuperAdmin() {
   const [exporting, setExporting] = useState(false);
   const [role, setRole] = useState<string>('');
   const [viewCompany, setViewCompany] = useState<any>(null);
-  // Inline editing of the Company Details modal — enabled for Admin / Super
+  // Inline editing of the Company Details modal � enabled for Admin / Super
   // Admin only; employees always get the read-only view.
   const [inlineEditing, setInlineEditing] = useState(false);
   const [inlineForm, setInlineForm] = useState<any>({ ...INLINE_EDIT_EMPTY });
@@ -315,13 +312,10 @@ export default function SuperAdmin() {
       telegramTeams: viewCompany.telegramTeams || '',
       contactPersonName: viewCompany.contactPersonName || '',
       contactPersonPhone: viewCompany.contactPersonPhone || '',
-      advertiserId: viewCompany.advertiserId || '',
-      advertiserName: viewCompany.advertiserName || '',
       accountManagerName: viewCompany.accountManagerName || viewCompany.addedBy?.name || '',
       country: viewCompany.country || '',
       city: viewCompany.city || '',
       state: viewCompany.state || '',
-      revenue: viewCompany.revenue || '',
       companySize: viewCompany.companySize || '',
       technologiesUsed: viewCompany.technologiesUsed || '',
       targetMarket: viewCompany.targetMarket || '',
@@ -369,13 +363,10 @@ export default function SuperAdmin() {
       telegramTeams: inlineForm.telegramTeams.trim() || null,
       contactPersonName: inlineForm.contactPersonName.trim() || null,
       contactPersonPhone: inlineForm.contactPersonPhone.trim() || null,
-      advertiserId: inlineForm.advertiserId.trim() || null,
-      advertiserName: inlineForm.advertiserName.trim() || null,
       accountManagerName: inlineForm.accountManagerName.trim() || null,
       country: inlineForm.country.trim() || null,
       city: inlineForm.city.trim() || null,
       state: inlineForm.state.trim() || null,
-      revenue: inlineForm.revenue.trim() || null,
       companySize: inlineForm.companySize.trim() || null,
       technologiesUsed: inlineForm.technologiesUsed.trim() || null,
       targetMarket: inlineForm.targetMarket.trim() || null,
@@ -385,7 +376,7 @@ export default function SuperAdmin() {
 
   const resetPageAndFilter = (setter: any) => (e: any) => { setter(e.target.value); setPage(1); };
 
-  // Changing the page size recalculates pagination â€” always restart from page 1
+  // Changing the page size recalculates pagination — always restart from page 1
   // so the user never lands on a page number that no longer exists.
   const handlePageSizeChange = (size: number) => {
     setPageSize(size);
@@ -423,7 +414,7 @@ export default function SuperAdmin() {
   const canDeleteCompany = (c: any) => canManage || (role === 'EMPLOYEE' && c.addedById === userId);
 
   // Edit access mirrors the server: Admins edit everything; an employee can edit
-  // every company in their listing (owned or imported â€” the listing scope and the
+  // every company in their listing (owned or imported — the listing scope and the
   // edit rule are identical server-side). Employees can now also change status on
   // those companies; new employee submissions are still forced to PENDING by the
   // server (create-mode select stays read-only for them).
@@ -484,9 +475,9 @@ export default function SuperAdmin() {
         }
       />
 
-      {/* Filters — ultra-compact left-aligned toolbar: minimized control
+      {/* Filters � ultra-compact left-aligned toolbar: minimized control
           heights/widths and gaps so every primary filter fits on ONE row at
-          1366×768 with no horizontal scrolling. Controls stack full-width on
+          1366�768 with no horizontal scrolling. Controls stack full-width on
           mobile and wrap gracefully on narrow screens. */}
       <Card className="px-2 py-1.5">
         <div className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center">
@@ -579,9 +570,7 @@ export default function SuperAdmin() {
                 />
               </Th>
               <Th className="w-[2%]">#</Th>
-              <Th className="w-[2%]">ID</Th>
-              <Th className="w-[5.5%]">Company</Th>
-              <Th className="w-[5%]">Advertiser Name</Th>
+               <Th className="w-[5.5%]">Company</Th>
               <Th className="w-[5.5%]">Website</Th>
               <Th className="w-[5.5%]">Contact Person</Th>
               <Th className="w-[5%]">Phone</Th>
@@ -608,7 +597,7 @@ export default function SuperAdmin() {
           <tbody className="divide-y divide-slate-100">
             {isLoading ? (
               <tr>
-                <td colSpan={26} className="p-8">
+                <td colSpan={24} className="p-8">
                   <div className="flex items-center justify-center gap-3 text-sm text-slate-500">
                     <Loader2 className="h-5 w-5 animate-spin text-brand-600" /> Loading company data...
                   </div>
@@ -616,7 +605,7 @@ export default function SuperAdmin() {
               </tr>
             ) : !data?.data || data.data.length === 0 ? (
               <tr>
-                <td colSpan={26}>
+                <td colSpan={24}>
                   <EmptyState
                     icon={<Building2 className="h-6 w-6" />}
                     title="No companies found"
@@ -637,7 +626,6 @@ export default function SuperAdmin() {
                   />
                 </Td>
                 <Td className="text-slate-400">{(page - 1) * 50 + index + 1}</Td>
-  <Td className="text-xs font-medium text-slate-500">{c.advertiserId || c.externalId || 'â€”'}</Td>
   <Td>
     <div className="flex items-start gap-2.5">
       <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-brand-50 to-violet-50 text-[10px] font-bold text-brand-600 ring-1 ring-brand-100">
@@ -646,21 +634,20 @@ export default function SuperAdmin() {
       <span className="text-sm font-semibold text-slate-900" title={c.companyName}>{c.companyName}</span>
     </div>
   </Td>
-  <Td className="text-sm text-slate-700">{c.advertiserName || 'â€”'}</Td>
-  <Td>
+    <Td>
     {c.website ? (
       <a href={c.website.startsWith("http") ? c.website : "https://" + c.website} target="_blank" rel="noreferrer" className="truncate text-sm text-brand-600 hover:underline" title={c.website}>
         {c.website.replace(/^https?:\/\//, "")}
       </a>
     ) : (
-      <span className="text-sm text-slate-300">â€”</span>
+      <span className="text-sm text-slate-300">—</span>
     )}
   </Td>
   <Td>
-    <span className="truncate text-sm text-slate-700" title={c.contactPersonName}>{c.contactPersonName || "â€”"}</span>
+    <span className="truncate text-sm text-slate-700" title={c.contactPersonName}>{c.contactPersonName || "—"}</span>
   </Td>
   <Td>
-    <span className="truncate text-sm text-slate-500" title={c.phone}>{c.phone || "â€”"}</span>
+    <span className="truncate text-sm text-slate-500" title={c.phone}>{c.phone || "—"}</span>
   </Td>
   <Td>
     {c.whatsappNumber ? (
@@ -668,11 +655,11 @@ export default function SuperAdmin() {
         {c.whatsappNumber}
       </a>
     ) : (
-      <span className="text-sm text-slate-300">â€”</span>
+      <span className="text-sm text-slate-300">—</span>
     )}
   </Td>
   <Td>
-    <span className="truncate text-sm text-slate-500" title={c.telegramTeams}>{c.telegramTeams || "â€”"}</span>
+    <span className="truncate text-sm text-slate-500" title={c.telegramTeams}>{c.telegramTeams || "—"}</span>
   </Td>
   <Td>
     {c.linkedinUrl ? (
@@ -680,7 +667,7 @@ export default function SuperAdmin() {
         <Linkedin className="h-4 w-4" />
       </a>
     ) : (
-      <span className="text-sm text-slate-300">â€”</span>
+      <span className="text-sm text-slate-300">—</span>
     )}
   </Td>
   <Td>
@@ -694,19 +681,19 @@ export default function SuperAdmin() {
       )}
     </div>
   </Td>
-  <Td><span className="text-sm text-slate-700">{c.employees || "â€”"}</span></Td>
-  <Td><span className="text-sm text-slate-700">{c.followers || "â€”"}</span></Td>
+  <Td><span className="text-sm text-slate-700">{c.employees || "—"}</span></Td>
+  <Td><span className="text-sm text-slate-700">{c.followers || "—"}</span></Td>
   <Td><Badge color="gray">{c.companyType || "N/A"}</Badge></Td>
-  <Td><span className="truncate text-sm text-slate-700" title={c.baseGeo}>{c.baseGeo || "â€”"}</span></Td>
-  <Td><span className="truncate text-sm text-slate-500" title={c.address}>{c.address || "â€”"}</span></Td>
-  <Td><span className="truncate text-sm text-slate-500" title={c.services}>{c.services || "â€”"}</span></Td>
-  <Td><span className="truncate text-sm text-slate-500" title={c.technologiesUsed}>{c.technologiesUsed || "â€”"}</span></Td>
-  <Td><span className="truncate text-sm text-slate-700" title={c.accountManagerName || c.addedBy?.name}>{c.accountManagerName || c.addedBy?.name || "â€”"}</span></Td>
+  <Td><span className="truncate text-sm text-slate-700" title={c.baseGeo}>{c.baseGeo || "—"}</span></Td>
+  <Td><span className="truncate text-sm text-slate-500" title={c.address}>{c.address || "—"}</span></Td>
+  <Td><span className="truncate text-sm text-slate-500" title={c.services}>{c.services || "—"}</span></Td>
+  <Td><span className="truncate text-sm text-slate-500" title={c.technologiesUsed}>{c.technologiesUsed || "—"}</span></Td>
+  <Td><span className="truncate text-sm text-slate-700" title={c.accountManagerName || c.addedBy?.name}>{c.accountManagerName || c.addedBy?.name || "—"}</span></Td>
   <Td><span className="truncate text-sm text-slate-500" title={formatRecordCreated(c)}>{formatRecordCreated(c)}</span></Td>
   <Td><span className="truncate text-sm text-slate-500" title={formatRecordModified(c)}>{formatRecordModified(c)}</span></Td>
   <Td><QualityBadge quality={c.leadQuality} /></Td>
   <Td><StatusBadge status={c.status} /></Td>
-  <Td><span className="truncate text-sm text-slate-500" title={c.source}>{c.source || "â€”"}</span></Td>
+  <Td><span className="truncate text-sm text-slate-500" title={c.source}>{c.source || "—"}</span></Td>
   <Td className="text-right">
     <div className="flex justify-end gap-0.5">
       <button onClick={(e) => { e.stopPropagation(); setViewCompany(c); }} className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-brand-50 hover:text-brand-600" title="View details">
@@ -744,7 +731,7 @@ export default function SuperAdmin() {
       {/* Pagination */}
       <div className="mt-5 flex flex-col items-center justify-between gap-3 text-sm text-slate-500 sm:flex-row">
         <span>
-          Page <strong>{page}</strong> of <strong>{data?.totalPages || 1}</strong> Â· {data?.total || 0} companies
+          Page <strong>{page}</strong> of <strong>{data?.totalPages || 1}</strong> · {data?.total || 0} companies
         </span>
         <div className="flex flex-wrap items-center justify-center gap-4">
           <label className="flex items-center gap-2">
@@ -789,7 +776,7 @@ export default function SuperAdmin() {
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-slate-700">{log.fileName}</p>
                   <p className="text-xs text-slate-400">
-                    by {log.user?.name || 'Unknown'} Â· {formatDateTime(log.createdAt) ?? '—'}
+                    by {log.user?.name || 'Unknown'} · {formatDateTime(log.createdAt) ?? '�'}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
@@ -856,8 +843,6 @@ export default function SuperAdmin() {
                 <DetailItem label="Telegram / Teams" value={viewCompany.telegramTeams} />
                 <DetailItem label="Contact Person Name" value={viewCompany.contactPersonName} />
                 <DetailItem label="Contact Person Phone" value={viewCompany.contactPersonPhone} />
-                <DetailItem label="Advertiser ID" value={viewCompany.advertiserId} />
-                <DetailItem label="Advertiser Name" value={viewCompany.advertiserName} />
                 <DetailItem label="Employees" value={viewCompany.employees} />
                 <DetailItem label="Followers" value={viewCompany.followers} />
                 <DetailItem label="Type" value={viewCompany.companyType} />
@@ -868,7 +853,6 @@ export default function SuperAdmin() {
                 <DetailItem label="Affiliate Manager" value={viewCompany.accountManagerName || viewCompany.addedBy?.name} />
                 <DetailItem label="Address" value={viewCompany.address} />
                 <DetailItem label="Services" value={viewCompany.services} />
-                <DetailItem label="Revenue" value={viewCompany.revenue} />
                 <DetailItem label="Company Size" value={viewCompany.companySize} />
                 <DetailItem label="Technologies Used" value={viewCompany.technologiesUsed} />
                 <DetailItem label="Target Market" value={viewCompany.targetMarket} />
@@ -892,7 +876,7 @@ export default function SuperAdmin() {
                   {(feedbackQuery.data?.data || []).map((fb: any) => (
                     <div key={fb.id} className="rounded-lg bg-white p-3 shadow-sm">
                       <p className="text-sm text-slate-700">{fb.comment}</p>
-                      <p className="mt-1 text-xs text-slate-400">{fb.user?.name || 'Admin'} &middot; {formatDateTime(fb.createdAt) ?? '—'}</p>
+                      <p className="mt-1 text-xs text-slate-400">{fb.user?.name || 'Admin'} &middot; {formatDateTime(fb.createdAt) ?? '�'}</p>
                     </div>
                   ))}
                 </div>
@@ -1049,7 +1033,7 @@ function InlineEditGrid({ form, onChange, users }: {
           <option value="INACTIVE">Inactive</option>
         </Select>
       </Field>
-      <Field label="Affiliate Manager — assign to user (login accounts)">
+      <Field label="Affiliate Manager � assign to user (login accounts)">
         <Select
           name="accountManagerName"
           value={users.some((u: any) => u.name === form.accountManagerName) ? form.accountManagerName : form.accountManagerName ? `__custom__:${form.accountManagerName}` : ''}
@@ -1061,7 +1045,7 @@ function InlineEditGrid({ form, onChange, users }: {
             onChange({ target: { name: 'accountManagerName', value: v.startsWith('__custom__:') ? v.replace(/^__custom__:/, '') : v } } as any);
           }}
         >
-          <option value="">— Select user —</option>
+          <option value="">� Select user �</option>
           {users.map((u: any) => (
             <option key={u.id} value={u.name}>
               {u.name} ({u.role === 'ADMIN' ? 'Admin' : 'Employee'})
@@ -1069,7 +1053,7 @@ function InlineEditGrid({ form, onChange, users }: {
           ))}
           {form.accountManagerName && !users.some((u: any) => u.name === form.accountManagerName) && (
             <option value={`__custom__:${form.accountManagerName}`}>
-              {form.accountManagerName} (previous — no login)
+              {form.accountManagerName} (previous � no login)
             </option>
           )}
         </Select>
@@ -1092,12 +1076,6 @@ function InlineEditGrid({ form, onChange, users }: {
       <Field label="Contact Person Phone">
         <Input name="contactPersonPhone" value={form.contactPersonPhone} onChange={onChange} />
       </Field>
-      <Field label="Advertiser ID">
-        <Input name="advertiserId" value={form.advertiserId} onChange={onChange} placeholder="e.g. ADV-1023" />
-      </Field>
-      <Field label="Advertiser Name">
-        <Input name="advertiserName" value={form.advertiserName} onChange={onChange} placeholder="e.g. Acme Advertising" />
-      </Field>
       <Field label="Country">
         <Input name="country" value={form.country} onChange={onChange} />
       </Field>
@@ -1106,9 +1084,6 @@ function InlineEditGrid({ form, onChange, users }: {
       </Field>
       <Field label="State">
         <Input name="state" value={form.state} onChange={onChange} />
-      </Field>
-      <Field label="Revenue">
-        <Input name="revenue" value={form.revenue} onChange={onChange} />
       </Field>
       <Field label="Company Size">
         <Input name="companySize" value={form.companySize} onChange={onChange} />

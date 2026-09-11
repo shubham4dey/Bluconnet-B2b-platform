@@ -38,8 +38,6 @@ const EMPTY_FORM = {
   telegramTeams: '',
   contactPersonName: '',
   contactPersonPhone: '',
-  advertiserId: '',
-  advertiserName: '',
   accountManagerName: '',
 };
 
@@ -166,8 +164,6 @@ export default function CompanyForm({ open, onClose, editCompany, canManageStatu
         telegramTeams: editCompany.telegramTeams || '',
         contactPersonName: editCompany.contactPersonName || '',
         contactPersonPhone: editCompany.contactPersonPhone || '',
-        advertiserId: editCompany.advertiserId || '',
-        advertiserName: editCompany.advertiserName || '',
         accountManagerName: editCompany.accountManagerName || editCompany.addedBy?.name || '',
       });
       setDraftRestored(false);
@@ -239,8 +235,6 @@ export default function CompanyForm({ open, onClose, editCompany, canManageStatu
       telegramTeams: form.telegramTeams.trim() || null,
       contactPersonName: form.contactPersonName.trim() || null,
       contactPersonPhone: form.contactPersonPhone.trim() || null,
-      advertiserId: form.advertiserId.trim() || null,
-      advertiserName: form.advertiserName.trim() || null,
       accountManagerName: form.accountManagerName.trim() || null,
     };
     mutation.mutate(payload);
@@ -352,12 +346,6 @@ export default function CompanyForm({ open, onClose, editCompany, canManageStatu
           </Field>
           <Field label="Contact Person Phone">
             <Input name="contactPersonPhone" value={form.contactPersonPhone} onChange={handleChange} />
-          </Field>
-          <Field label="Advertiser ID">
-            <Input name="advertiserId" value={form.advertiserId} onChange={handleChange} placeholder="e.g. ADV-1023" />
-          </Field>
-          <Field label="Advertiser Name">
-            <Input name="advertiserName" value={form.advertiserName} onChange={handleChange} placeholder="e.g. Acme Advertising" />
           </Field>
           <Field label="Phone">
             <Input name="phone" value={form.phone} onChange={handleChange} />

@@ -58,7 +58,6 @@ const FIELD_ALIASES: Record<string, string> = {
   city: 'city',
   address: 'address',
   services: 'services',
-  revenue: 'revenue',
   companysize: 'companySize',
   size: 'companySize',
   technologiesused: 'technologiesUsed',
@@ -80,9 +79,6 @@ const FIELD_ALIASES: Record<string, string> = {
    contactpersonphone: 'contactPersonPhone',
    contactname: 'contactPersonName',
    contactpersonname: 'contactPersonName',
-   advertiserid: 'advertiserId',
-   advertisername: 'advertiserName',
-   advertiser: 'advertiserName',
    telegram: 'telegramTeams',
    teams: 'telegramTeams',
    telegramteams: 'telegramTeams',
@@ -92,13 +88,13 @@ const FIELD_ALIASES: Record<string, string> = {
 const WRITABLE_FIELDS = new Set<string>([
   'companyName', 'website', 'linkedinUrl', 'email', 'salesNumber', 'whatsappNumber',
   'whatsappVerified', 'employees', 'followers', 'companyType', 'industry', 'baseGeo',
-  'country', 'state', 'city', 'address', 'services', 'revenue', 'companySize',
+  'country', 'state', 'city', 'address', 'services', 'companySize',
   'technologiesUsed', 'targetMarket', 'leadQuality', 'status', 'source',
   'complianceGdpr', 'complianceCcpa', 'optIn', 'doNotContact',
   'externalId', 'address1', 'address2', 'zipcode', 'otherInfo', 'phone',
      'signupIp', 'accountManagerId', 'accountManagerName',
    'contactPersonName', 'contactPersonPhone', 'telegramTeams',
-   'advertiserId', 'advertiserName', 'recordCreated', 'recordModified',
+   'recordCreated', 'recordModified',
 ]);
 
 const normalizeKey = (key: string) =>
@@ -193,7 +189,7 @@ const SKIP_NA_FIELDS = new Set(['companyName', 'status', 'leadQuality', 'source'
  * - Int / boolean / date / enum fields are type-converted; blanks stay empty.
  * - Columns that don't match any known header are preserved in `otherInfo`
  *   ("Header: value | Header: value") so no sheet data is ever lost.
- * - Rows without a company name fall back to advertiser name, then a row label.
+ * - Rows without a company name get a row label fallback.
  */
 function mapRow(row: any, rowNumber = 0, action: 'skip' | 'update' = 'skip'): any {
   const mapped: Record<string, any> = {};
@@ -241,10 +237,7 @@ function mapRow(row: any, rowNumber = 0, action: 'skip' | 'update' = 'skip'): an
 
   // Best-effort company name so no row is silently dropped.
   if (!mapped.companyName) {
-    mapped.companyName =
-      mapped.advertiserName && mapped.advertiserName !== 'N/A'
-        ? mapped.advertiserName
-        : `Unnamed Company (Row ${rowNumber})`;
+    mapped.companyName = `Unnamed Company (Row ${rowNumber})`;
   }
   return mapped;
 }
