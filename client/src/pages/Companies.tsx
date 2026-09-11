@@ -686,8 +686,8 @@ export default function SuperAdmin() {
       )}
     </div>
   </Td>
-  <Td><span className="text-sm text-slate-700">{c.employees || "—"}</span></Td>
-  <Td><span className="text-sm text-slate-700">{c.followers || "—"}</span></Td>
+  <Td><span className="text-sm text-slate-700">{c.employees ?? "—"}</span></Td>
+  <Td><span className="text-sm text-slate-700">{c.followers ?? "—"}</span></Td>
   <Td><Badge color="gray">{c.companyType || "N/A"}</Badge></Td>
   <Td><span className="truncate text-sm text-slate-700" title={c.baseGeo}>{c.baseGeo || "—"}</span></Td>
   <Td><span className="truncate text-sm text-slate-500" title={c.address}>{c.address || "—"}</span></Td>

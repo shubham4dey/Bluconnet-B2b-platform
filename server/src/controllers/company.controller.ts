@@ -25,7 +25,7 @@ const COMPANY_SCALAR_FIELDS = new Set<string>([
   'targetMarket', 'leadQuality', 'status', 'statusRaw', 'signupIp', 'externalId',
   'accountManagerId', 'accountManagerName', 'employeeName', 'recordCreated',
   'recordModified', 'whatsappVerified', 'complianceGdpr', 'complianceCcpa',
-  'optIn', 'doNotContact', 'source',
+  'optIn', 'doNotContact', 'source', 'employees', 'followers',
 ]);
 
 // Columns stored as Int / Boolean / DateTime in Postgres — empty strings, NaN and

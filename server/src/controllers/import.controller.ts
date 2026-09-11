@@ -79,6 +79,7 @@ const FIELD_ALIASES: Record<string, string> = {
    contactpersonphone: 'contactPersonPhone',
    contactname: 'contactPersonName',
    contactpersonname: 'contactPersonName',
+   contactperson: 'contactPersonName',
    telegram: 'telegramTeams',
    teams: 'telegramTeams',
    telegramteams: 'telegramTeams',
