@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx';
 import { parse as parseCsv } from 'csv-parse/sync';
 import { prisma } from '../index';
 import { AuthRequest } from '../middleware/auth';
+import { employeeCanAccessCompany } from './company.controller';
 
 // Map common header names (normalized) to Prisma Company fields.
 const FIELD_ALIASES: Record<string, string> = {
@@ -315,7 +316,12 @@ export const importCompanies = async (req: AuthRequest, res: Response) => {
         const existing = await prisma.company.findFirst({ where: { OR, isDeleted: false } });
 
         if (existing) {
-          if (action === 'update') {
+          // Ownership guard: an EMPLOYEE may only overwrite (update-import) a
+          // duplicate that is actually assigned to them. A duplicate belonging
+          // to another employee is skipped exactly like "Skip duplicates" so the
+          // importing employee can never edit or claim another employee's company.
+          const canTouchExisting = req.user!.role !== 'EMPLOYEE' || (await employeeCanAccessCompany(req.user!, existing));
+          if (action === 'update' && canTouchExisting) {
             // Never overwrite real data with the 'N/A' blank marker.
             const clean: Record<string, any> = {};
             for (const [k, v] of Object.entries(mapped)) {
@@ -339,12 +345,10 @@ export const importCompanies = async (req: AuthRequest, res: Response) => {
             updated++;
           } else {
             duplicates++;
-            // Still record the importer's interaction with the row so it shows up
-            // in their own "Employee Companies" listing (which is scoped by the
-            // employee's audit interactions in addition to ownership).
-            await prisma.auditLog.create({
-              data: { userId: req.user!.id, companyId: existing.id, action: 'UPDATE', fieldName: 'IMPORT_DUPLICATE', newValue: 'skip' },
-            });
+            // Skipped duplicate: do NOT touch the existing record and do NOT
+            // create an audit-log entry. The company keeps its assigned
+            // Affiliate Manager, is never re-assigned to the importer, and the
+            // importing employee never gains any access to it.
           }
           continue;
         }
@@ -357,6 +361,14 @@ export const importCompanies = async (req: AuthRequest, res: Response) => {
         const deletedMatch = await prisma.company.findFirst({ where: { OR, isDeleted: true } });
 
         if (deletedMatch) {
+          // Ownership guard for EMPLOYEEs: a soft-deleted company belongs to its
+          // assigned Affiliate Manager. Only that employee (or an Admin /
+          // Super Admin) may restore it; otherwise it is skipped as a duplicate
+          // so the importer can never resurrect or modify another employee's record.
+          if (req.user!.role === 'EMPLOYEE' && !(await employeeCanAccessCompany(req.user!, deletedMatch))) {
+            duplicates++;
+            continue;
+          }
           const clean: Record<string, any> = {};
           if (action === 'update') {
             for (const [k, v] of Object.entries(mapped)) {
@@ -421,6 +433,13 @@ export const importCompanies = async (req: AuthRequest, res: Response) => {
               ? await prisma.company.findUnique({ where: { externalId: mapped.externalId } })
               : null;
             if (holder) {
+              // Ownership guard for EMPLOYEEs (mirrors the live-duplicate path):
+              // the row holding the colliding externalId belongs to its assigned
+              // Affiliate Manager; no other employee may touch it.
+              if (req.user!.role === 'EMPLOYEE' && !(await employeeCanAccessCompany(req.user!, holder))) {
+                duplicates++;
+                continue;
+              }
               const clean: Record<string, any> = {};
               if (action === 'update') {
                 for (const [k, v] of Object.entries(mapped)) {

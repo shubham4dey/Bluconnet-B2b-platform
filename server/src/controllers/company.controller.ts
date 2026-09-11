@@ -118,14 +118,13 @@ async function buildWhere(req: AuthRequest) {
   if (leadQuality) where.leadQuality = leadQuality;
   if (companyType) where.companyType = companyType;
   if (accountManager) {
-    // Filter by account manager — matches companies where:
-    // 1. accountManagerName matches (assigned to that manager), OR
-    // 2. addedBy.name matches (created by that employee)
-    // This ensures Super Admin can see all companies associated with an employee.
+    // Filter by Affiliate Manager — matches ONLY companies actually assigned to
+    // that manager, using the exact same name rule as Employee visibility and
+    // the edit/delete ownership checks. Companies merely created by the user but
+    // later assigned to another manager must NOT match this filter.
     const accountManagerFilter = {
       OR: [
-        { accountManagerName: { contains: accountManager as string, mode: 'insensitive' } },
-        { addedBy: { is: { name: { contains: accountManager as string, mode: 'insensitive' } } } },
+        { accountManagerName: { equals: accountManager as string, mode: 'insensitive' } },
       ],
     };
     // Combine with existing search OR if present
@@ -137,24 +136,17 @@ async function buildWhere(req: AuthRequest) {
     }
   }
 
-  // RBAC: Employees see companies they own OR have imported/updated/restored.
-  // A row the employee imported and that matched an existing company (the
-  // "update" import path) stays owned by its original owner; without this extra
-  // scope those companies would be invisible to the employee who imported them.
+  // RBAC: Employees see only companies assigned to them (Affiliate Manager).
+  // An employee must see only companies where they are the Affiliate Manager.
+  // They must never see another employee's companies.
   if (req.user?.role === 'EMPLOYEE') {
-    const interactions = await prisma.auditLog.findMany({
-      where: {
-        userId: req.user.id,
-        companyId: { not: null },
-        action: { in: ['CREATE', 'UPDATE', 'RESTORE'] },
-      },
-      select: { companyId: true },
-    });
-    const importedIds = [...new Set(interactions.map((a) => a.companyId).filter(Boolean))];
     const visible = {
       OR: [
-        { addedById: req.user.id },
-        ...(importedIds.length ? [{ id: { in: importedIds } }] : []),
+        { accountManagerName: { equals: req.user.name, mode: 'insensitive' } },
+        // Also include companies they created that don't have an assigned manager yet
+        { addedById: req.user.id, accountManagerName: null },
+        // Also include companies where they are the creator (addedBy) and manager is set to their name
+        { addedById: req.user.id, accountManagerName: { equals: req.user.name, mode: 'insensitive' } },
       ],
     };
     if (where.OR) {
@@ -170,20 +162,18 @@ async function buildWhere(req: AuthRequest) {
 
 // ── RBAC helpers ─────────────────────────────────────────────────────────────────────────
 // Access rule for employees (kept in sync with buildWhere above): a company is
-// accessible when the employee owns it OR the employee has import/update/restore
-// activity on it (tracked per-company in AuditLog). This guarantees that every
-// company visible in an employee's listing is also open for viewing feedback and
-// for acting on Admin remarks.
-async function employeeCanAccessCompany(user: { id: string }, company: { id: string; addedById: string }): Promise<boolean> {
-  if (company.addedById === user.id) return true;
-  const n = await prisma.auditLog.count({
-    where: {
-      userId: user.id,
-      companyId: company.id,
-      action: { in: ['CREATE', 'UPDATE', 'RESTORE'] },
-    },
-  });
-  return n > 0;
+// accessible only when the employee is its assigned Affiliate Manager, or when
+// the employee is its creator and no manager has been assigned yet (legacy rows
+// default to the creator). This guarantees that every company visible in an
+// employee's listing is also open for editing, status changes, deletion and
+// viewing feedback — all permission checks share this single ownership rule.
+// An employee can access a company only if they are the Affiliate Manager.
+export async function employeeCanAccessCompany(user: { id: string; name?: string }, company: { id: string; addedById: string; accountManagerName?: string | null }): Promise<boolean> {
+  // Employee is the creator and no manager is assigned yet
+  if (company.addedById === user.id && !company.accountManagerName) return true;
+  // Employee is the assigned Affiliate Manager
+  if (company.accountManagerName && company.accountManagerName.toLowerCase() === user.name?.toLowerCase()) return true;
+  return false;
 }
 
 // Returns the distinct set of affiliate / account managers for the filter dropdown.
@@ -306,7 +296,12 @@ export const createCompany = async (req: AuthRequest, res: Response) => {
     // Auto-assign the creator as the Affiliate Manager when none is explicitly
     // selected. A company always belongs to someone; that person is its default
     // manager until an Admin / Super Admin assigns a different one later.
-    if (!data.accountManagerName) {
+    // Employees cannot assign the Affiliate Manager (the UI hides the field for
+    // them), so every company an employee creates is owned by that employee.
+    if (req.user!.role === 'EMPLOYEE') {
+      data.accountManagerName = req.user!.name;
+      delete data.accountManagerId;
+    } else if (!data.accountManagerName) {
       data.accountManagerName = req.user!.name;
     }
 
@@ -355,10 +350,10 @@ export const updateCompanyStatus = async (req: AuthRequest, res: Response) => {
     if (!oldCompany || oldCompany.isDeleted) {
       return res.status(404).json({ success: false, message: 'Company not found' });
     }
-    // Employees may only change the status of companies they added or imported.
+    // Employees may only change the status of companies assigned to them.
     // (Super Admin / Admin can change status on any company.)
     if (req.user!.role === 'EMPLOYEE' && !(await employeeCanAccessCompany(req.user!, oldCompany))) {
-      return res.status(403).json({ success: false, message: 'You can only change the status of companies that you added or imported' });
+      return res.status(403).json({ success: false, message: 'You can only change the status of companies assigned to you' });
     }
     const updated = await prisma.company.update({
       where: { id },
@@ -392,10 +387,9 @@ export const updateCompany = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ success: false, message: 'Company not found' });
     }
 
-    // RBAC: Employees may update details on companies they own OR imported/updated
-    // (e.g. acting on Admin feedback) — same access rule as the Companies listing.
+    // RBAC: Employees may update details on companies assigned to them.
     if (req.user!.role === 'EMPLOYEE' && !(await employeeCanAccessCompany(req.user!, company))) {
-      return res.status(403).json({ success: false, message: 'You can only update companies that you added or imported' });
+      return res.status(403).json({ success: false, message: 'You can only update companies assigned to you' });
     }
 
     if (data.status !== undefined) {
@@ -412,7 +406,14 @@ export const updateCompany = async (req: AuthRequest, res: Response) => {
     // Clearing the Affiliate Manager selection falls back to the creator's name
     // (the default manager) so the field is never left blank for a company that
     // has a known creator. An explicitly assigned manager always takes precedence.
-    if (
+    // Employees may never re-assign ownership: the Affiliate Manager field is
+    // Admin/Super Admin only in the UI, so a crafted request that tries to hand
+    // the company to another employee is ignored and the existing manager (or the
+    // creator, for legacy rows) is preserved.
+    if (req.user!.role === 'EMPLOYEE') {
+      data.accountManagerName = company.accountManagerName || company.addedBy?.name;
+      delete data.accountManagerId;
+    } else if (
       req.body && Object.prototype.hasOwnProperty.call(req.body, 'accountManagerName')
       && !data.accountManagerName
     ) {
@@ -457,9 +458,10 @@ export const deleteCompany = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ success: false, message: 'Company not found' });
     }
 
-    // RBAC: Employees can only delete companies they imported or manually added.
-    if (req.user!.role === 'EMPLOYEE' && company.addedById !== req.user!.id) {
-      return res.status(403).json({ success: false, message: 'You can only delete companies that you added' });
+    // RBAC: Employees can only delete companies assigned to them — the same
+    // ownership/assignment rule used for visibility, editing and status changes.
+    if (req.user!.role === 'EMPLOYEE' && !(await employeeCanAccessCompany(req.user!, company))) {
+      return res.status(403).json({ success: false, message: 'You can only delete companies assigned to you' });
     }
 
     // Soft delete - data stays recoverable (is_deleted = true).
@@ -492,9 +494,13 @@ export const deleteCompaniesBulk = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ success: false, message: 'Companies not found' });
     }
 
-    // RBAC: Employees cannot delete companies added by other employees/admins.
-    if (req.user!.role === 'EMPLOYEE' && companies.some((c) => c.addedById !== req.user!.id)) {
-      return res.status(403).json({ success: false, message: 'You can only delete companies that you added' });
+    // RBAC: Employees can only delete companies assigned to them — the same
+    // ownership/assignment rule used for visibility, editing and status changes.
+    if (req.user!.role === 'EMPLOYEE') {
+      const canDeleteAll = (await Promise.all(companies.map((c) => employeeCanAccessCompany(req.user!, c)))).every(Boolean);
+      if (!canDeleteAll) {
+        return res.status(403).json({ success: false, message: 'You can only delete companies assigned to you' });
+      }
     }
 
     await prisma.company.updateMany({
