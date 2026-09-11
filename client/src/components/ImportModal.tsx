@@ -8,6 +8,8 @@ import { useToast } from './Toast';
 interface ImportModalProps {
   open: boolean;
   onClose: () => void;
+  /** Whether to show the "Update existing" option. Default: true */
+  showUpdateOption?: boolean;
 }
 
 interface ImportResult {
@@ -20,7 +22,7 @@ interface ImportResult {
   failedRows?: { row: number; reason: string }[];
 }
 
-export default function ImportModal({ open, onClose }: ImportModalProps) {
+export default function ImportModal({ open, onClose, showUpdateOption = true }: ImportModalProps) {
   const [file, setFile] = useState<File | null>(null);
   const [duplicateAction, setDuplicateAction] = useState<'skip' | 'update'>('skip');
   const [result, setResult] = useState<ImportResult | null>(null);
@@ -103,7 +105,7 @@ export default function ImportModal({ open, onClose }: ImportModalProps) {
           {/* Duplicate handling */}
           <div>
             <p className="mb-2 text-sm font-semibold text-slate-700">Duplicate handling</p>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className={`grid gap-2 ${showUpdateOption ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
               <label
                 className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-3 text-sm font-medium transition-all ${
                   duplicateAction === 'skip' ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
@@ -112,14 +114,16 @@ export default function ImportModal({ open, onClose }: ImportModalProps) {
                 <input type="radio" name="dup" value="skip" checked={duplicateAction === 'skip'} onChange={() => setDuplicateAction('skip')} className="accent-brand-600" />
                 Skip duplicates
               </label>
-              <label
-                className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-3 text-sm font-medium transition-all ${
-                  duplicateAction === 'update' ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
-                }`}
-              >
-                <input type="radio" name="dup" value="update" checked={duplicateAction === 'update'} onChange={() => setDuplicateAction('update')} className="accent-brand-600" />
-                Update existing
-              </label>
+              {showUpdateOption && (
+                <label
+                  className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-3 text-sm font-medium transition-all ${
+                    duplicateAction === 'update' ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                  }`}
+                >
+                  <input type="radio" name="dup" value="update" checked={duplicateAction === 'update'} onChange={() => setDuplicateAction('update')} className="accent-brand-600" />
+                  Update existing
+                </label>
+              )}
             </div>
           </div>
 

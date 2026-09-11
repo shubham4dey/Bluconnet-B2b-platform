@@ -411,7 +411,8 @@ export default function SuperAdmin() {
     statusMutation.mutate({ id: company.id, status: newStatus });
   };
 
-  const canDeleteCompany = (c: any) => canManage || (role === 'EMPLOYEE' && c.addedById === userId);
+  // Delete access: Admins/Super Admins can delete any company; employees cannot delete
+  const canDeleteCompany = (c: any) => canManage;
 
   // Edit access mirrors the server: Admins edit everything; an employee can edit
   // every company in their listing (owned or imported — the listing scope and the
@@ -954,7 +955,7 @@ export default function SuperAdmin() {
         </div>
       </Modal>
 
-      <ImportModal open={importOpen} onClose={() => setImportOpen(false)} />
+      <ImportModal open={importOpen} onClose={() => setImportOpen(false)} showUpdateOption={canManage} />
       {/* Create form: employees can now select and update the status.
           Admins may also pick any status. Edit form: same access for all users.
           Affiliate Manager field is only visible to Admin / Super Admin roles. */}
