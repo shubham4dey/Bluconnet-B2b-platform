@@ -94,12 +94,17 @@ interface ModalProps {
   icon?: React.ReactNode;
   children: React.ReactNode;
   maxWidth?: string;
+  /** Whether clicking the backdrop (outside the modal) closes it. Default: true */
+  closeOnBackdropClick?: boolean;
 }
 
-export function Modal({ open, onClose, title, icon, children, maxWidth = 'max-w-lg' }: ModalProps) {
+export function Modal({ open, onClose, title, icon, children, maxWidth = 'max-w-lg', closeOnBackdropClick = true }: ModalProps) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" 
+      onClick={closeOnBackdropClick ? onClose : undefined}
+    >
       <div
         className={`w-full ${maxWidth} max-h-[90vh] animate-slide-up overflow-y-auto rounded-2xl bg-white shadow-modal`}
         onClick={(e) => e.stopPropagation()}

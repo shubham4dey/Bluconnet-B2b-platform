@@ -2,7 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createCompany, updateCompany, getAssignableUsers } from '../lib/api';
 import { formatRecordCreated, formatRecordModified } from '../lib/dates';
-import { Plus, Save, Building2 } from 'lucide-react';
+import { Plus, Save, Building2, Info } from 'lucide-react';
 import { Modal, Field, Input, Select, Button } from './ui';
 import { useToast } from './Toast';
 
@@ -43,6 +43,10 @@ const EMPTY_FORM = {
   accountManagerName: '',
 };
 
+// localStorage key for draft autosave
+const DRAFT_STORAGE_KEY = 'companyForm:draft';
+const DRAFT_TIMESTAMP_KEY = 'companyForm:draftTimestamp';
+
 // '' / junk → null (column stays empty); '1,200' or ' 50 ' → 1200 / 50.
 // Never sends NaN or '' for the Int columns, which the API would reject.
 const parseOptionalInt = (v: string): number | null => {
@@ -51,11 +55,67 @@ const parseOptionalInt = (v: string): number | null => {
   return Number.isFinite(n) ? Math.trunc(n) : null;
 };
 
+// Save form data to localStorage as a draft
+const saveDraft = (formData: typeof EMPTY_FORM) => {
+  try {
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(formData));
+    localStorage.setItem(DRAFT_TIMESTAMP_KEY, new Date().toISOString());
+  } catch {
+    // Storage full or unavailable - silently fail
+  }
+};
+
+// Load form data from localStorage draft
+const loadDraft = (): typeof EMPTY_FORM | null => {
+  try {
+    const data = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (data) {
+      return JSON.parse(data);
+    }
+  } catch {
+    // Invalid JSON - silently fail
+  }
+  return null;
+};
+
+// Clear the saved draft
+const clearDraft = () => {
+  try {
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
+    localStorage.removeItem(DRAFT_TIMESTAMP_KEY);
+  } catch {
+    // Storage unavailable - silently fail
+  }
+};
+
+// Format timestamp for display
+const formatDraftTime = (isoString: string): string => {
+  try {
+    const date = new Date(isoString);
+    return date.toLocaleString();
+  } catch {
+    return '';
+  }
+};
+
+// Check if form has any meaningful content (not just empty defaults)
+const hasFormContent = (formData: typeof EMPTY_FORM): boolean => {
+  return Object.entries(formData).some(([key, value]) => {
+    if (key === 'leadQuality' && value === 'C') return false; // default value
+    if (key === 'status' && value === 'PENDING') return false; // default value
+    return value !== '' && value !== null && value !== undefined;
+  });
+};
+
 export default function CompanyForm({ open, onClose, editCompany, canManageStatus = false, canManage = false, canManageAffiliateManager = false }: CompanyFormProps) {
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [error, setError] = useState('');
+  const [draftRestored, setDraftRestored] = useState(false);
+  const [draftTimestamp, setDraftTimestamp] = useState('');
   const queryClient = useQueryClient();
   const toast = useToast();
+
+  const isEdit = !!editCompany;
 
   // Everyone holding a platform LOGIN account who logged in at least once
   // (ADMIN + EMPLOYEE, ACTIVE, lastLogin NOT NULL) — shown in the Affiliate
@@ -69,8 +129,23 @@ export default function CompanyForm({ open, onClose, editCompany, canManageStatu
   });
   const assignableUsers: any[] = assignableUsersRes?.data || [];
 
+  // Load draft when opening create form (not edit mode)
   useEffect(() => {
-    if (editCompany) {
+    if (open && !editCompany) {
+      const draft = loadDraft();
+      if (draft && hasFormContent(draft)) {
+        setForm(draft);
+        setDraftRestored(true);
+        const timestamp = localStorage.getItem(DRAFT_TIMESTAMP_KEY);
+        if (timestamp) {
+          setDraftTimestamp(formatDraftTime(timestamp));
+        }
+      } else {
+        setForm({ ...EMPTY_FORM });
+        setDraftRestored(false);
+        setDraftTimestamp('');
+      }
+    } else if (open && editCompany) {
       setForm({
         companyName: editCompany.companyName || '',
         website: editCompany.website || '',
@@ -95,17 +170,26 @@ export default function CompanyForm({ open, onClose, editCompany, canManageStatu
         advertiserName: editCompany.advertiserName || '',
         accountManagerName: editCompany.accountManagerName || editCompany.addedBy?.name || '',
       });
-    } else {
-      setForm({ ...EMPTY_FORM });
+      setDraftRestored(false);
+      setDraftTimestamp('');
     }
   }, [editCompany, open]);
 
-  const isEdit = !!editCompany;
+  // Auto-save draft on form changes (only in create mode)
+  useEffect(() => {
+    if (open && !editCompany && hasFormContent(form)) {
+      saveDraft(form);
+    }
+  }, [form, open, editCompany]);
 
   const mutation = useMutation({
     mutationFn: (payload: any) => (isEdit ? updateCompany(editCompany.id, payload) : createCompany(payload)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companies'] });
+      // Clear draft on successful save (create mode only)
+      if (!isEdit) {
+        clearDraft();
+      }
       toast.success(isEdit ? 'Company updated' : 'Company added', isEdit ? 'Your changes have been saved.' : 'The company was added to your database.');
       handleClose();
     },
@@ -163,10 +247,23 @@ export default function CompanyForm({ open, onClose, editCompany, canManageStatu
   };
 
   const handleClose = () => {
+    // Clear draft only on explicit close/cancel (not on backdrop click which is now disabled)
+    if (!isEdit) {
+      clearDraft();
+    }
     onClose();
     setForm({ ...EMPTY_FORM });
     setError('');
+    setDraftRestored(false);
+    setDraftTimestamp('');
     mutation.reset();
+  };
+
+  const handleDismissDraft = () => {
+    clearDraft();
+    setForm({ ...EMPTY_FORM });
+    setDraftRestored(false);
+    setDraftTimestamp('');
   };
 
   return (
@@ -176,8 +273,27 @@ export default function CompanyForm({ open, onClose, editCompany, canManageStatu
       title={isEdit ? 'Edit Company' : 'Add Company'}
       icon={<Building2 className="h-5 w-5 text-brand-600" />}
       maxWidth="max-w-2xl"
+      closeOnBackdropClick={false}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Draft restored notification */}
+        {draftRestored && !isEdit && (
+          <div className="flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <Info className="h-4 w-4 text-blue-600" />
+              <span className="text-sm text-blue-700">
+                Draft restored from {draftTimestamp || 'previous session'}. Your progress is auto-saved.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleDismissDraft}
+              className="text-sm font-medium text-blue-600 hover:text-blue-800"
+            >
+              Clear draft
+            </button>
+          </div>
+        )}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Company Name" required>
             <Input name="companyName" value={form.companyName} onChange={handleChange} placeholder="Acme Inc." required />
