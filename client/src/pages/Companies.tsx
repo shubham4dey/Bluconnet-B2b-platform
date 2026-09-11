@@ -176,6 +176,8 @@ export default function SuperAdmin() {
   const canManage = ['SUPER_ADMIN', 'ADMIN'].includes(role);
   // Export is Admin-only (SUPER_ADMIN / ADMIN) per role-based access control.
   const isAdmin = ['SUPER_ADMIN', 'ADMIN'].includes(role);
+  // Admin-only role check (excludes SUPER_ADMIN and EMPLOYEE)
+  const isAdminOnly = role === 'ADMIN';
   // Employees are allowed to add companies and import CSVs, but never export.
   const canAddOrImport = canManage || role === 'EMPLOYEE';
 
@@ -457,17 +459,17 @@ export default function SuperAdmin() {
         icon={<Building2 className="h-5 w-5" />}
         actions={
           <>
-            {isAdmin && (
+            {isAdmin && !isAdminOnly && (
               <Button variant="secondary" size="sm" onClick={handleExport} loading={exporting} icon={<FileDown className="h-4 w-4" />} className="whitespace-nowrap">
                 Export CSV
               </Button>
             )}
-            {canAddOrImport && (
+            {canAddOrImport && !isAdminOnly && (
               <Button variant="success" size="sm" onClick={() => setImportOpen(true)} icon={<Upload className="h-4 w-4" />} className="whitespace-nowrap">
                 Import
               </Button>
             )}
-            {canAddOrImport && (
+            {canAddOrImport && !isAdminOnly && (
               <Button size="sm" onClick={() => setCreateOpen(true)} icon={<Plus className="h-4 w-4" />} className="whitespace-nowrap">
                 Add Company
               </Button>
@@ -592,13 +594,15 @@ export default function SuperAdmin() {
               <Th className="w-[3%]">Quality</Th>
               <Th className="w-[4%]">Status</Th>
               <Th className="w-[3%]">Source</Th>
-              <Th className="w-[6%]">Actions</Th>
+              {!isAdminOnly && (
+                <Th className="w-[6%]">Actions</Th>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {isLoading ? (
               <tr>
-                <td colSpan={24} className="p-8">
+                <td colSpan={isAdminOnly ? 23 : 24} className="p-8">
                   <div className="flex items-center justify-center gap-3 text-sm text-slate-500">
                     <Loader2 className="h-5 w-5 animate-spin text-brand-600" /> Loading company data...
                   </div>
@@ -606,7 +610,7 @@ export default function SuperAdmin() {
               </tr>
             ) : !data?.data || data.data.length === 0 ? (
               <tr>
-                <td colSpan={24}>
+                <td colSpan={isAdminOnly ? 23 : 24}>
                   <EmptyState
                     icon={<Building2 className="h-6 w-6" />}
                     title="No companies found"
@@ -695,32 +699,34 @@ export default function SuperAdmin() {
   <Td><QualityBadge quality={c.leadQuality} /></Td>
   <Td><StatusBadge status={c.status} /></Td>
   <Td><span className="truncate text-sm text-slate-500" title={c.source}>{c.source || "—"}</span></Td>
-  <Td className="text-right">
-    <div className="flex justify-end gap-0.5">
-      <button onClick={(e) => { e.stopPropagation(); setViewCompany(c); }} className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-brand-50 hover:text-brand-600" title="View details">
-        <Eye className="h-4 w-4" />
-      </button>
-      {canEditRow && (
-        <button onClick={(e) => { e.stopPropagation(); setEditCompany(c); }} className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-brand-50 hover:text-brand-600" title="Edit">
-          <Edit2 className="h-4 w-4" />
+  {!isAdminOnly && (
+    <Td className="text-right">
+      <div className="flex justify-end gap-0.5">
+        <button onClick={(e) => { e.stopPropagation(); setViewCompany(c); }} className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-brand-50 hover:text-brand-600" title="View details">
+          <Eye className="h-4 w-4" />
         </button>
-      )}
-      {canEditRow && (
-        <button
-          onClick={(e) => { e.stopPropagation(); handleToggleStatus(c); }}
-          className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-amber-50 hover:text-amber-600"
-          title={c.status === "ACTIVE" ? "Deactivate" : "Activate"}
-        >
-          {c.status === "ACTIVE" ? <ToggleLeft className="h-4 w-4" /> : <ToggleRight className="h-4 w-4" />}
-        </button>
-      )}
-      {canDeleteCompany(c) && (
-        <button onClick={(e) => { e.stopPropagation(); openDeleteModal([c.id], [c.companyName]); }} className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600" title="Delete">
-          <Trash2 className="h-4 w-4" />
-        </button>
-      )}
-    </div>
-  </Td>
+        {canEditRow && (
+          <button onClick={(e) => { e.stopPropagation(); setEditCompany(c); }} className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-brand-50 hover:text-brand-600" title="Edit">
+            <Edit2 className="h-4 w-4" />
+          </button>
+        )}
+        {canEditRow && (
+          <button
+            onClick={(e) => { e.stopPropagation(); handleToggleStatus(c); }}
+            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-amber-50 hover:text-amber-600"
+            title={c.status === "ACTIVE" ? "Deactivate" : "Activate"}
+          >
+            {c.status === "ACTIVE" ? <ToggleLeft className="h-4 w-4" /> : <ToggleRight className="h-4 w-4" />}
+          </button>
+        )}
+        {canDeleteCompany(c) && (
+          <button onClick={(e) => { e.stopPropagation(); openDeleteModal([c.id], [c.companyName]); }} className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600" title="Delete">
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+    </Td>
+  )}
 </tr>
                 ))
               )}

@@ -73,9 +73,11 @@ export default function Employees() {
         subtitle={`${employees.length} team members with platform access`}
         icon={<Users className="h-5 w-5" />}
         actions={
-          <Button onClick={() => setShowCreate(true)} icon={<Plus className="h-4 w-4" />} size="sm" className="whitespace-nowrap">
-            Create Employee
-          </Button>
+          !isAdminOnly && (
+            <Button onClick={() => setShowCreate(true)} icon={<Plus className="h-4 w-4" />} size="sm" className="whitespace-nowrap">
+              Create Employee
+            </Button>
+          )
         }
       />
 
@@ -88,13 +90,15 @@ export default function Employees() {
                 <Th className="w-[14%]">Role</Th>
                 <Th className="w-[12%]">Status</Th>
                 <Th className="hidden w-[14%] lg:table-cell">Last Login</Th>
-                <Th className="text-right">Actions</Th>
+                {!isAdminOnly && (
+                  <Th className="text-right">Actions</Th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="p-8">
+                  <td colSpan={isAdminOnly ? 5 : 6} className="p-8">
                     <div className="flex items-center justify-center gap-3 text-sm text-slate-500">
                       <Loader2 className="h-5 w-5 animate-spin text-brand-600" /> Loading employees...
                     </div>
@@ -102,7 +106,7 @@ export default function Employees() {
                 </tr>
               ) : employees.length === 0 ? (
                 <tr>
-                  <td colSpan={6}>
+                  <td colSpan={isAdminOnly ? 5 : 6}>
                     <EmptyState
                       icon={<Users className="h-6 w-6" />}
                       title="No employees yet"
@@ -135,38 +139,40 @@ export default function Employees() {
                     <Td className="hidden text-sm text-slate-500 lg:table-cell">
                       {emp.lastLogin ? new Date(emp.lastLogin).toLocaleDateString() : 'Never'}
                     </Td>
-                    <Td className="text-right">
-                      <div className="flex justify-end gap-0.5">
-                        {canTouchRow(emp) ? (
-                          <>
-                            <button onClick={() => setEditingEmployee(emp)} className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-brand-50 hover:text-brand-600" title="Edit">
-                              <Edit2 className="h-4 w-4" />
-                            </button>
-                            <button onClick={() => setPasswordEmployee(emp)} className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-amber-50 hover:text-amber-600" title="Change password">
-                              <Key className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => toggleMutation.mutate(emp.id)}
-                              className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-amber-50 hover:text-amber-600"
-                              title={emp.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
-                            >
-                              {emp.status === 'ACTIVE' ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (confirm('Delete this employee?')) deleteMutation.mutate(emp.id);
-                              }}
-                              className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
-                              title="Delete"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </>
-                        ) : (
-                          <span className="pr-2 text-xs font-medium text-slate-400" title="Admins cannot modify Super Admin accounts">Protected</span>
-                        )}
-                      </div>
-                    </Td>
+                    {!isAdminOnly && (
+                      <Td className="text-right">
+                        <div className="flex justify-end gap-0.5">
+                          {canTouchRow(emp) ? (
+                            <>
+                              <button onClick={() => setEditingEmployee(emp)} className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-brand-50 hover:text-brand-600" title="Edit">
+                                <Edit2 className="h-4 w-4" />
+                              </button>
+                              <button onClick={() => setPasswordEmployee(emp)} className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-amber-50 hover:text-amber-600" title="Change password">
+                                <Key className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => toggleMutation.mutate(emp.id)}
+                                className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-amber-50 hover:text-amber-600"
+                                title={emp.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                              >
+                                {emp.status === 'ACTIVE' ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (confirm('Delete this employee?')) deleteMutation.mutate(emp.id);
+                                }}
+                                className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
+                                title="Delete"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </>
+                          ) : (
+                            <span className="pr-2 text-xs font-medium text-slate-400" title="Admins cannot modify Super Admin accounts">Protected</span>
+                          )}
+                        </div>
+                      </Td>
+                    )}
                   </tr>
                 ))
               )}
